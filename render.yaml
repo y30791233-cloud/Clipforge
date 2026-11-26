@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: clipforge-1080p
+    runtime: docker
+    plan: free
+    healthCheckPath: /health

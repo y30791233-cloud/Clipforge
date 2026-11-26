@@ -1,49 +1,30 @@
-# ClipForge
+# ClipForge 1080p Backend
 
-ClipForge is a privacy-focused, browser-side video trimmer and audio extractor built with HTML, CSS, vanilla JavaScript, and FFmpeg WebAssembly.
-
-## What works
-
-- Select a local media file, or fetch a **direct media file URL** that permits browser CORS access.
-- Preview media using the browser's HTML5 video player.
-- Trim with HH:MM:SS fields and draggable start/end range controls.
-- Export a selected segment to MP4 (H.264/AAC), WebM (VP9/Opus), or MOV (H.264/AAC) where the FFmpeg build includes those encoders.
-- Extract audio to MP3, M4A, AAC, WAV, OGG, or FLAC where encoders are available.
-- Choose output resolution no higher than the detected source height.
-- View progress, duration and approximate output size; download the generated Blob.
-- Cancel a running FFmpeg job and clear the output object URL.
+A small Flask + yt-dlp + FFmpeg backend and mobile-friendly web UI. Video mode requests the best available video/audio streams at or below the selected maximum resolution (up to 1080p), merges them to MP4 where supported, then sends the result to the browser. Audio mode extracts MP3.
 
 ## Important limits
+- 1080p is a maximum requested resolution, not a guarantee. The source must contain 1080p.
+- This is a server-side downloader, not a browser-only/private-local processor. The hosting server processes the URL and file.
+- Use only videos you own or have permission to download, and comply with the source platform's terms and copyright law.
+- Private, DRM-protected, login-only and age-restricted content may fail.
+- Free hosting may have strict RAM, disk, bandwidth, execution timeout, or outbound network restrictions. Large 1080p downloads may fail.
+- YouTube and other platforms may change their systems, so yt-dlp may need updates.
+- Do not expose this publicly without rate limits, job limits, abuse protection, and a clear acceptable-use policy. This demo serializes jobs but is not hardened for public production use.
 
-This is a frontend-only tool, not a universal video-site downloader. It does not extract media from YouTube, social-media pages, protected streaming services, or DRM. A direct URL must be reachable by browser `fetch()` with CORS. Local files are the most reliable input.
-
-FFmpeg WebAssembly has limited memory compared with desktop FFmpeg. Large/high-resolution files may fail or exhaust browser memory. Input media and generated output are held temporarily in browser memory; object URLs are revoked when cleared or when the page is closed. This does not make browser memory perfectly secure, and the browser may maintain its own ordinary network/cache state.
-
-The application does not intentionally upload user media or URLs to an application server. It downloads the FFmpeg JavaScript/WASM engine from unpkg on first processing, and loads Google Fonts from Google Fonts CSS. If you need a fully offline deployment, self-host these open-source assets and replace the CDN imports/URLs in `script.js` and `style.css`.
+## Deploy with Render (mobile browser)
+1. Create a GitHub repository.
+2. Upload all files and folders from this project; `app.py` and `Dockerfile` must be at repository root.
+3. In Render, create a new **Web Service** from the repository and select Docker runtime. Or use the included `render.yaml` Blueprint.
+4. Deploy and wait for the build. Open the service URL.
+5. Paste a permitted video URL, select **1080p**, and tap Download.
 
 ## Run locally
-
-ES modules and FFmpeg worker/WASM loading require a local HTTP server. Do not open `index.html` directly as a `file://` URL.
-
-### Python
+Install Python 3.11+, FFmpeg, then:
 ```bash
-python -m http.server 8000
+pip install -r requirements.txt
+python app.py
 ```
-Then visit http://localhost:8000
+Open http://127.0.0.1:8080
 
-### Node (if installed)
-```bash
-npx serve .
-```
-
-No API key, account, backend, database, or build step is required. An internet connection is needed the first time to load FFmpeg assets (unless you self-host them).
-
-## Project files
-
-- `index.html` — accessible application layout
-- `style.css` — responsive dark UI and optional light theme
-- `script.js` — URL/local loading, trim UI, FFmpeg processing and downloads
-
-## Encoder notes
-
-FFmpeg core builds can differ. If a selected codec is absent, FFmpeg returns a real error and the app shows it; it does not fabricate an output. The browser's preview codec support is also independent of FFmpeg encoder support.
+## Security note
+Do not use this as an open public URL-to-file proxy. Restrict allowed domains, add authentication/rate limiting, and set download size/time limits before public deployment.
