@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101114">
+  <title>ClipForge — Private video tools</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="ClipForge home">
+      <span class="brand-mark" aria-hidden="true">C</span>
+      <span>ClipForge</span>
+    </a>
+    <div class="top-actions">
+      <span class="privacy"><span class="dot"></span> Runs on your device</span>
+      <button id="themeToggle" class="icon-button" type="button" aria-label="Toggle theme" title="Toggle theme">☼</button>
+    </div>
+  </header>
+
+  <main class="app-shell">
+    <section class="intro">
+      <div class="eyebrow">PRIVATE MEDIA WORKSPACE</div>
+      <h1>Make the cut.<br><span>Keep it yours.</span></h1>
+      <p>Trim a clip, convert a video, or pull out its audio — directly in your browser.</p>
+    </section>
+
+    <section class="panel source-panel" aria-labelledby="sourceTitle">
+      <div class="panel-heading">
+        <div><span class="step">01</span><h2 id="sourceTitle">Add your video</h2></div>
+        <span class="small-note">Local file or CORS-enabled direct URL</span>
+      </div>
+      <div class="url-row">
+        <label class="sr-only" for="videoUrl">Direct video URL</label>
+        <input id="videoUrl" type="url" placeholder="Paste a direct video file URL…" autocomplete="off" spellcheck="false">
+        <button id="loadUrl" class="button primary" type="button">Load URL <span aria-hidden="true">↗</span></button>
+      </div>
+      <div class="or-divider"><span>or</span></div>
+      <label class="file-drop" for="fileInput">
+        <span class="upload-icon" aria-hidden="true">↑</span>
+        <span><strong>Choose a video file</strong><small>MP4, WebM, MOV and other browser-readable files</small></span>
+        <span class="button secondary">Browse files</span>
+      </label>
+      <input id="fileInput" class="sr-only" type="file" accept="video/*,audio/*">
+      <p class="hint">Streaming-platform pages, DRM-protected media, and URLs blocked by CORS cannot be loaded here. Use a video file you have access to.</p>
+    </section>
+
+    <section id="editor" class="workspace hidden">
+      <section class="panel preview-panel">
+        <div class="panel-heading">
+          <div><span class="step">02</span><h2>Preview & trim</h2></div>
+          <span id="sourceMeta" class="small-note">No source loaded</span>
+        </div>
+        <div class="video-wrap">
+          <video id="video" controls playsinline preload="metadata"></video>
+          <div id="videoEmpty" class="video-empty"><span class="play-symbol">▶</span><span>Your video preview</span></div>
+        </div>
+        <div class="player-foot">
+          <span id="currentTime">00:00:00</span>
+          <span id="durationLabel">00:00:00</span>
+        </div>
+
+        <div class="trim-head">
+          <div><span class="step">A</span><h3>Selection</h3></div>
+          <span class="selection-duration" id="selectedDuration">Selected 00:00:00</span>
+        </div>
+        <div class="timeline" id="timeline">
+          <div class="timeline-base"></div>
+          <div id="selectionBand" class="selection-band"></div>
+          <input id="startRange" class="range start-range" type="range" min="0" max="100" value="0" aria-label="Trim start position">
+          <input id="endRange" class="range end-range" type="range" min="0" max="100" value="100" aria-label="Trim end position">
+        </div>
+        <div class="time-inputs">
+          <label>Start time <input id="startTime" type="text" value="00:00:00" inputmode="numeric" aria-describedby="timeHelp"></label>
+          <label>End time <input id="endTime" type="text" value="00:00:00" inputmode="numeric"></label>
+          <button id="previewSelection" class="button secondary compact" type="button">Preview selection</button>
+        </div>
+        <p id="timeHelp" class="hint">Enter HH:MM:SS. The end point is exclusive for the output clip.</p>
+      </section>
+
+      <section class="panel settings-panel">
+        <div class="panel-heading">
+          <div><span class="step">03</span><h2>Output settings</h2></div>
+        </div>
+        <div class="mode-switch" role="group" aria-label="Output mode">
+          <button id="videoMode" class="mode-button active" type="button">▣ Video</button>
+          <button id="audioMode" class="mode-button" type="button">♫ Audio only</button>
+        </div>
+        <div class="field">
+          <label for="outputFormat">Output format</label>
+          <select id="outputFormat"></select>
+          <small id="formatNote">Codec availability depends on the FFmpeg build.</small>
+        </div>
+        <div id="videoOptions">
+          <div class="field">
+            <label for="quality">Resolution</label>
+            <select id="quality"></select>
+            <small>Options are capped at the source's detected height. No fake 4K upscaling.</small>
+          </div>
+        </div>
+        <div id="audioOptions" class="hidden">
+          <div class="field">
+            <label for="bitrate">Audio bitrate</label>
+            <select id="bitrate">
+              <option value="64">64 kbps</option>
+              <option value="96">96 kbps</option>
+              <option value="128" selected>128 kbps</option>
+              <option value="192">192 kbps</option>
+              <option value="256">256 kbps</option>
+              <option value="320">320 kbps</option>
+            </select>
+            <small>Applies to lossy audio encoders; WAV and FLAC are lossless.</small>
+          </div>
+        </div>
+        <div class="estimate">
+          <div><span>Output duration</span><strong id="estimateDuration">—</strong></div>
+          <div><span>Estimated size</span><strong id="estimateSize">—</strong></div>
+        </div>
+        <button id="process" class="button primary process-button" type="button" disabled>Process video <span>→</span></button>
+        <button id="cancel" class="button danger hidden" type="button">Cancel processing</button>
+        <div id="progressArea" class="progress-area hidden" aria-live="polite">
+          <div class="progress-label"><span id="progressText">Preparing…</span><span id="progressPercent">0%</span></div>
+          <div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>
+          <p id="progressDetail" class="hint">Processing stays in this tab.</p>
+        </div>
+        <div id="result" class="result hidden">
+          <div class="result-icon">✓</div>
+          <div class="result-copy"><strong>Ready to save</strong><span id="resultMeta"></span></div>
+          <a id="download" class="button primary download-button" href="#" download>Download file ↓</a>
+          <button id="clearOutput" class="button secondary compact" type="button">Clear output</button>
+        </div>
+      </section>
+    </section>
+
+    <div id="status" class="status" role="status" aria-live="polite"></div>
+    <section class="privacy-note">
+      <span class="lock" aria-hidden="true">⌑</span>
+      <div><strong>Your media stays in this browser</strong><p>ClipForge has no upload server and does not intentionally send your video or URL to an application backend. The browser still handles network requests and may retain ordinary browser-level data. Processing can use substantial memory; close the tab to discard its in-memory workspace.</p></div>
+    </section>
+    <footer><span>ClipForge</span><span>Local-first media tools · No account required</span></footer>
+  </main>
+  <script type="module" src="script.js"></script>
+</body>
+</html>
